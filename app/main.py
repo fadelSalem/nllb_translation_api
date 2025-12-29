@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from app.utils import detect_source_language, split_article
 from app.translator import translate_batch
 
-app = FastAPI(title="NLLB Translation API")
+app = FastAPI(title="NLLB Translation API", root_path="/translation-ai")
 
 
 class TranslateRequest(BaseModel):
