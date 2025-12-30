@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-
+import os
 from app.utils import detect_source_language, split_article
 from app.translator import translate_batch
 
-app = FastAPI(title="NLLB Translation API", root_path="/translation-ai")
+ROOT_PATH = os.getenv("ROOT_PATH", "")
+
+app = FastAPI(
+    title="AI Translation API",
+    root_path=ROOT_PATH,
+    version="1.0"
+)
 
 
 class TranslateRequest(BaseModel):
