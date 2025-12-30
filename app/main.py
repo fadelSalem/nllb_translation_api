@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Body
 import os
 from app.utils import detect_source_language, split_article
 from app.translator import translate_batch
@@ -13,25 +12,23 @@ app = FastAPI(
 )
 
 
-class TranslateRequest(BaseModel):
-    text: str
-    target_language: str
-
-
 @app.post("/translate")
-def translate_article(data: TranslateRequest):
-    source_lang = detect_source_language(data.text)
+def translate_article(
+    text: str = Body(..., media_type="text/plain"),
+    target_language: str = "eng_Latn"
+):
+    source_lang = detect_source_language(text)
 
-    chunks = split_article(data.text)
+    chunks = split_article(text)
 
     translated_chunks = translate_batch(
         texts=chunks,
         src_lang=source_lang,
-        tgt_lang=data.target_language
+        tgt_lang=target_language
     )
 
     return {
         "detected_source_language": source_lang,
-        "target_language": data.target_language,
+        "target_language": target_language,
         "translated_text": "\n\n".join(translated_chunks)
     }
