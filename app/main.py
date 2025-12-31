@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Body
 import os
-from app.utils import detect_source_language, split_article
+from app.utils import split_article, split_sentences, detect_language_per_sentence
 from app.translator import translate_batch
 
 ROOT_PATH = os.getenv("ROOT_PATH", "")
@@ -17,18 +17,22 @@ def translate_article(
     text: str = Body(..., media_type="text/plain"),
     target_language: str = "eng_Latn"
 ):
-    source_lang = detect_source_language(text)
+    sentences = split_sentences(text)
+    detected = detect_language_per_sentence(sentences)
 
-    chunks = split_article(text)
+    translated_sentences = []
 
-    translated_chunks = translate_batch(
-        texts=chunks,
-        src_lang=source_lang,
-        tgt_lang=target_language
-    )
+    for sentence, src_lang in detected:
+        chunks = split_article(sentence)
+        translated_chunks = translate_batch(
+            texts=chunks,
+            src_lang=src_lang,
+            tgt_lang=target_language
+        )
+        translated_sentences.append(" ".join(translated_chunks))
 
     return {
-        "detected_source_language": source_lang,
+        "detected_source_language": list(set(lang for _, lang in detected)),
         "target_language": target_language,
-        "translated_text": "\n\n".join(translated_chunks)
+        "translated_text": " ".join(translated_sentences)
     }
